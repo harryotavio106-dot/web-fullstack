@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神庙寻宝探险</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            min-height: 600px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            color: #FFD700;
+            letter-spacing: 2px;
+            font-family: 'Georgia', serif;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #FFA500;
+            margin-bottom: 20px;
+        }
+        
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: 1;
+            border-radius: 15px;
+        }
+        
+        .scene.active {
+            opacity: 0.3;
+        }
+        
+        .scene-library {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%235d4037" /><rect x="20" y="20" width="60" height="5" fill="%238d6e63" /><rect x="20" y="35" width="60" height="5" fill="%238d6e63" /><rect x="20" y="50" width="60" height="5" fill="%238d6e63" /><rect x="20" y="65" width="60" height="5" fill="%238d6e63" /></svg>');
+        }
+        
+        .scene-jungle {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232e7d32" /><path d="M30,70 Q50,20 70,70 Z" fill="%23388e3c" /><circle cx="20" cy="80" r="10" fill="%2355aa55" /><circle cx="80" cy="80" r="8" fill="%2355aa55" /></svg>');
+        }
+        
+        .scene-temple {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23795548" /><path d="M30,30 L70,30 L70,70 L30,70 Z" fill="%239c786c" /><path d="M25,25 L75,25 L50,10 Z" fill="%239c786c" /></svg>');
+        }
+        
+        .scene-treasure {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23005296" /><rect x="30" y="40" width="40" height="30" fill="%23FFD700" /><circle cx="50" cy="30" r="10" fill="%23FFD700" /></svg>');
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #FF8C00, #FFD700);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #FF8C00, #FF4500);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+            font-size: 1.1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 140, 0, 0.6);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .log-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #444;
+        }
+        
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .log-entry i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .success {
+            color: #7CFC00;
+        }
+        
+        .error {
+            color: #FF4500;
+        }
+        
+        .highlight {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .adventure-path {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .path-step {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #333;
+            border: 2px solid #FFD700;
+            z-index: 2;
+            position: relative;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .path-step.active {
+            background: #FF8C00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .path-step.completed {
+            background: #32CD32;
+        }
+        
+        .adventure-path::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: #FFD700;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 140, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
+        }
+        
+        .step-title {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-top: 5px;
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+        
+        .scene-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity 1s ease;
+            text-align: center;
+            width: 100%;
+            z-index: 5;
+        }
+        
+        .scene-title.active {
+            opacity: 1;
+        }
+        
+        .character {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: #FFD700;
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(45deg);
+            z-index: 5;
+            animation: move 20s linear infinite;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        @keyframes move {
+            0% { left: 5%; }
+            25% { left: 30%; }
+            50% { left: 60%; }
+            75% { left: 80%; }
+            100% { left: 95%; }
+        }
+        
+        .treasure {
+            position: absolute;
+            top: 50%;
+            right: 10%;
+            font-size: 3rem;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 5;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        .treasure.revealed {
+            opacity: 1;
+            animation: shine 2s ease infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+        
+        .scene-transition {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            opacity: 0;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .path-step {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>神庙寻宝探险</h1>
+        <p class="subtitle">踏上寻找年级第一宝座的奇幻旅程！</p>
+    </header>
+    
+    <div class="container">
+        <!-- 场景背景 -->
+        <div class="scene scene-library active" id="scene-library"></div>
+        <div class="scene scene-jungle" id="scene-jungle"></div>
+        <div class="scene scene-temple" id="scene-temple"></div>
+        <div class="scene scene-treasure" id="scene-treasure"></div>
+        
+        <!-- 场景标题 -->
+        <div class="scene-title" id="scene-title">古老图书馆</div>
+        
+        <!-- 场景过渡效果 -->
+        <div class="scene-transition" id="scene-transition"></div>
+        
+        <div class="content">
+            <div class="adventure-path">
+                <div class="path-step active" id="step1"><i class="fas fa-book"></i></div>
+                <div class="path-step" id="step2"><i class="fas fa-code"></i></div>
+                <div class="path-step" id="step3"><i class="fas fa-tree"></i></div>
+                <div class="path-step" id="step4"><i class="fas fa-puzzle-piece"></i></div>
+                <div class="path-step" id="step5"><i class="fas fa-search"></i></div>
+                <div class="path-step" id="step6"><i class="fas fa-box-open"></i></div>
+            </div>
+            
+            <div class="step-title" id="current-step">获取初始线索</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress">0%</div>
+            </div>
+            
+            <div class="controls">
+                <button id="start-btn"><i class="fas fa-play"></i> 开始探险</button>
+                <button id="reset-btn" disabled><i class="fas fa-redo"></i> 重新开始</button>
+            </div>
+            
+            <div class="log-container" id="log"></div>
+        </div>
+        
+        <div class="character"></div>
+        <div class="treasure">📦</div>
+    </div>
+
+    <script>
+        // 模拟宝藏地图API - 扩展版本
+        class TreasureMap {
+            static async getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("在古老的图书馆里找到了第一个线索：'知识是通往成功的钥匙'");
+                    }, 1500);
+                });
+            }
+            
+            static async decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject("没有线索可以解码!");
+                        }
+                        resolve("解码成功!线索指向一座古老的神庙，那里藏着智慧的宝藏...");
+                    }, 2000);
+                });
+            }
+            
+            static async navigateJungle() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.3) {
+                            reject("糟糕!在丛林迷路了，需要重新规划路线!");
+                        } else {
+                            resolve("成功穿越丛林!前方出现古老的神庙入口...");
+                        }
+                    }, 2500);
+                });
+            }
+            
+            static async solveTempleRiddle() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("解开了神庙的古老谜题：'学习是探索，成绩是宝藏!' 石门缓缓打开...");
+                    }, 3000);
+                });
+            }
+            
+            static async searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.4) {
+                            reject("糟糕!遇到了神庙守卫!需要智取而非强攻");
+                        } else {
+                            resolve("成功进入神庙深处!发现了一个刻有'年级第一'的神秘箱子...");
+                        }
+                    }, 2000);
+                });
+            }
+            
+            static async openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("恭喜!你找到了传说中的宝藏 - 年级第一的荣誉证书和奖学金!");
+                    }, 1500);
+                });
+            }
+            
+            static async escapeTemple() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("成功带着宝藏逃离神庙!你的名字将被刻在荣誉墙上!");
+                    }, 1000);
+                });
+            }
+        }
+
+        // 页面元素
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const logContainer = document.getElementById('log');
+        const progressBar = document.getElementById('progress');
+        const currentStep = document.getElementById('current-step');
+        const treasure = document.querySelector('.treasure');
+        const sceneTransition = document.getElementById('scene-transition');
+        const sceneTitle = document.getElementById('scene-title');
+        
+        // 场景元素
+        const scenes = {
+            library: document.getElementById('scene-library'),
+            jungle: document.getElementById('scene-jungle'),
+            temple: document.getElementById('scene-temple'),
+            treasure: document.getElementById('scene-treasure')
+        };
+        
+        // 添加日志条目
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'error') icon = 'fa-exclamation-circle';
+            if (type === 'highlight') icon = 'fa-star';
+            
+            logEntry.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // 更新进度
+        function updateProgress(percent, stepName) {
+            progressBar.style.width = `${percent}%`;
+            progressBar.textContent = `${percent}%`;
+            currentStep.textContent = stepName;
+        }
+        
+        // 激活步骤
+        function activateStep(stepNumber) {
+            // 重置所有步骤
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+            }
+            
+            // 激活当前步骤并标记已完成步骤
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < stepNumber) {
+                    step.classList.add('completed');
+                } else if (i === stepNumber) {
+                    step.classList.add('active');
+                }
+            }
+        }
+        
+        // 场景转换
+        async function changeScene(sceneName, title) {
+            return new Promise((resolve) => {
+                // 淡出当前场景
+                sceneTransition.style.opacity = '0.8';
+                sceneTransition.style.transition = 'opacity 0.8s ease';
+                
+                setTimeout(() => {
+                    // 隐藏所有场景
+                    for (const key in scenes) {
+                        scenes[key].classList.remove('active');
+                    }
+                    
+                    // 显示新场景
+                    scenes[sceneName].classList.add('active');
+                    
+                    // 更新场景标题
+                    sceneTitle.textContent = title;
+                    sceneTitle.classList.add('active');
+                    
+                    // 淡入新场景
+                    setTimeout(() => {
+                        sceneTransition.style.opacity = '0';
+                        setTimeout(() => {
+                            sceneTitle.classList.remove('active');
+                            resolve();
+                        }, 1000);
+                    }, 500);
+                }, 800);
+            });
+        }
+        
+        // 使用async/await重写寻宝过程
+        async function findTreasureWithAsyncAwait() {
+            try {
+                startBtn.disabled = true;
+                resetBtn.disabled = true;
+                
+                // 步骤1: 获取初始线索
+                await changeScene('library', '古老图书馆');
+                activateStep(1);
+                updateProgress(10, "获取初始线索");
+                const clue = await TreasureMap.getInitialClue();
+                addLog(clue, 'success');
+                
+                // 步骤2: 解码古老脚本
+                activateStep(2);
+                updateProgress(25, "解码古老脚本");
+                const decoded = await TreasureMap.decodeAncientScript(clue);
+                addLog(decoded, 'success');
+                
+                // 步骤3: 穿越丛林
+                await changeScene('jungle', '神秘丛林');
+                activateStep(3);
+                updateProgress(40, "穿越丛林");
+                const jungle = await TreasureMap.navigateJungle();
+                addLog(jungle, 'success');
+                
+                // 步骤4: 解开谜题
+                await changeScene('temple', '古老神庙');
+                activateStep(4);
+                updateProgress(55, "解开神庙谜题");
+                const riddle = await TreasureMap.solveTempleRiddle();
+                addLog(riddle, 'success');
+                
+                // 步骤5: 搜索神庙
+                activateStep(5);
+                updateProgress(70, "搜索神庙");
+                const temple = await TreasureMap.searchTemple(decoded);
+                addLog(temple, 'success');
+                
+                // 步骤6: 打开宝箱
+                await changeScene('treasure', '宝藏密室');
+                activateStep(6);
+                updateProgress(85, "打开宝箱");
+                const treasure = await TreasureMap.openTreasureBox();
+                addLog(treasure, 'success');
+                
+                // 最终步骤: 逃离神庙
+                updateProgress(100, "逃离神庙");
+                const escape = await TreasureMap.escapeTemple();
+                addLog(escape, 'success');
+                
+                // 显示宝藏
+                document.querySelector('.treasure').classList.add('revealed');
+                
+                addLog("🎉 探险成功! 你获得了年级第一的荣誉! 🎉", 'highlight');
+                
+            } catch (error) {
+                addLog(`任务失败: ${error}`, 'error');
+                addLog("尝试重新开始探险...", 'info');
+            } finally {
+                startBtn.disabled = false;
+                resetBtn.disabled = false;
+            }
+        }
+        
+        // 重置寻宝
+        function resetTreasureHunt() {
+            logContainer.innerHTML = '';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            currentStep.textContent = '获取初始线索';
+            treasure.classList.remove('revealed');
+            
+            // 重置步骤
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+            }
+            document.getElementById('step1').classList.add('active');
+            
+            // 重置场景
+            for (const key in scenes) {
+                scenes[key].classList.remove('active');
+            }
+            scenes.library.classList.add('active');
+            
+            addLog("探险已重置，准备开始新的寻宝旅程...", 'info');
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', findTreasureWithAsyncAwait);
+        resetBtn.addEventListener('click', resetTreasureHunt);
+        
+        // 初始化
+        addLog("欢迎来到神庙寻宝探险! 点击'开始探险'按钮开始寻找年级第一的宝藏...", 'highlight');
+    </script>
+</body>
+</html>
